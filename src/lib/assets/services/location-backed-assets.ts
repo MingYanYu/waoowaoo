@@ -63,6 +63,22 @@ function buildImageGroups(
   return groups
 }
 
+function normalizeSeedDescriptions(input: {
+  descriptions?: string[]
+  fallbackDescription: string
+}): string[] {
+  const normalized = (input.descriptions ?? [])
+    .map((description) => description.trim())
+    .filter((description) => description.length > 0)
+
+  if (normalized.length > 0) {
+    return normalized
+  }
+
+  const fallbackDescription = input.fallbackDescription.trim()
+  return fallbackDescription.length > 0 ? [fallbackDescription] : []
+}
+
 async function readProjectLocationBackedImages(locationIds: string[]): Promise<Map<string, LocationBackedImageRow[]>> {
   if (locationIds.length === 0) {
     return new Map()
@@ -194,6 +210,11 @@ export async function createProjectLocationBackedAsset(input: {
       NOW()
     )
   `)
+  await seedProjectLocationBackedImageSlots({
+    locationId: id,
+    fallbackDescription: input.summary,
+    descriptions: [input.summary],
+  })
   return { id }
 }
 
@@ -229,7 +250,50 @@ export async function createGlobalLocationBackedAsset(input: {
       NOW()
     )
   `)
+  await seedGlobalLocationBackedImageSlots({
+    locationId: id,
+    fallbackDescription: input.summary,
+    descriptions: [input.summary],
+  })
   return { id }
+}
+
+export async function seedProjectLocationBackedImageSlots(input: {
+  locationId: string
+  fallbackDescription: string
+  descriptions?: string[]
+}): Promise<void> {
+  const descriptions = normalizeSeedDescriptions(input)
+  if (descriptions.length === 0) {
+    return
+  }
+
+  await prisma.locationImage.createMany({
+    data: descriptions.map((description, imageIndex) => ({
+      locationId: input.locationId,
+      imageIndex,
+      description,
+    })),
+  })
+}
+
+export async function seedGlobalLocationBackedImageSlots(input: {
+  locationId: string
+  fallbackDescription: string
+  descriptions?: string[]
+}): Promise<void> {
+  const descriptions = normalizeSeedDescriptions(input)
+  if (descriptions.length === 0) {
+    return
+  }
+
+  await prisma.globalLocationImage.createMany({
+    data: descriptions.map((description, imageIndex) => ({
+      locationId: input.locationId,
+      imageIndex,
+      description,
+    })),
+  })
 }
 
 export async function deleteProjectLocationBackedAsset(assetId: string): Promise<void> {

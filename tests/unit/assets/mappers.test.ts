@@ -8,6 +8,7 @@ describe('asset mappers', () => {
       id: 'character-1',
       name: '林夏',
       introduction: '主角',
+      profileData: JSON.stringify({ archetype: 'lead' }),
       voiceType: 'custom',
       voiceId: 'voice-1',
       customVoiceUrl: 'https://example.com/voice.mp3',
@@ -37,6 +38,7 @@ describe('asset mappers', () => {
       scope: 'project',
       kind: 'character',
       introduction: '主角',
+      profileData: JSON.stringify({ archetype: 'lead' }),
       profileConfirmed: true,
       voice: expect.objectContaining({
         voiceType: 'custom',

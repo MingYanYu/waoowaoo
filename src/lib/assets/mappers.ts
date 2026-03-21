@@ -32,6 +32,7 @@ type ProjectCharacterRecord = {
   id: string
   name: string
   introduction?: string | null
+  profileData?: string | null
   voiceType?: 'custom' | 'qwen-designed' | 'uploaded' | null
   voiceId?: string | null
   customVoiceUrl?: string | null
@@ -214,6 +215,7 @@ export function mapProjectCharacterToAsset(character: ProjectCharacterRecord): C
     taskState: createIdleTaskState(),
     variants,
     introduction: character.introduction ?? null,
+    profileData: character.profileData ?? null,
     profileConfirmed: character.profileConfirmed ?? null,
     profileTaskRefs: [
       {
@@ -290,6 +292,7 @@ export function mapGlobalCharacterToAsset(character: GlobalCharacterRecord): Cha
     taskState: createIdleTaskState(),
     variants,
     introduction: null,
+    profileData: null,
     profileConfirmed: null,
     profileTaskRefs: [],
     profileTaskState: createIdleTaskState(),

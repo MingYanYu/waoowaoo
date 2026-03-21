@@ -12,6 +12,8 @@
         "confirmProfiles": "角色档案待确认",
         "confirmHint": "请确认以下角色档案后生成外貌描述",
         "confirmAll": "全部确认 ({count})",
+        "pendingProfilesBanner": "AI 选角完成",
+        "pendingProfilesHint": "确认档案后自动生成角色形象",
         "assetsTitle": "资产分析",
         "characterAssets": "角色资产",
         "locationAssets": "场景资产",

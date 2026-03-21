@@ -38,11 +38,15 @@ export default function AssetFilterBar({
 
     return (
         <div className="px-4 py-3 glass-surface rounded-xl">
-            <SegmentedControl
-                options={segmentOptions}
-                value={kindFilter}
-                onChange={onKindFilterChange}
-            />
+            <div className="overflow-x-auto">
+                <SegmentedControl
+                    options={segmentOptions}
+                    value={kindFilter}
+                    onChange={onKindFilterChange}
+                    layout="compact"
+                    className="min-w-max"
+                />
+            </div>
         </div>
     )
 }

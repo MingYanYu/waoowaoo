@@ -2,16 +2,14 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslations } from 'next-intl'
-import { useRefreshProjectAssets, useProjectAssets, useProjectData } from '@/lib/query/hooks'
-import TaskStatusInline from '@/components/task/TaskStatusInline'
-import { resolveTaskPresentationState } from '@/lib/task/presentation'
+import { useProjectAssets, useProjectData } from '@/lib/query/hooks'
 import { AppIcon } from '@/components/ui/icons'
 import JSZip from 'jszip'
 import { logError as _logError } from '@/lib/logging/core'
 
 /**
  * AssetToolbar - 资产管理工具栏组件
- * 从 AssetsStage.tsx 提取，负责批量操作和刷新按钮
+ * 从 AssetsStage.tsx 提取，负责资产统计与顶部操作
  */
 
 interface EpisodeOption {
@@ -29,9 +27,6 @@ interface AssetToolbarProps {
     isBatchSubmitting: boolean
     isAnalyzingAssets: boolean
     isGlobalAnalyzing?: boolean
-    batchProgress: { current: number; total: number }
-    onGenerateAll: () => void
-    onRegenerateAll: () => void
     onGlobalAnalyze?: () => void
     /** Episode filter */
     episodeId: string | null
@@ -166,29 +161,16 @@ export default function AssetToolbar({
     isBatchSubmitting,
     isAnalyzingAssets,
     isGlobalAnalyzing = false,
-    batchProgress,
-    onGenerateAll,
-    onRegenerateAll,
     onGlobalAnalyze,
     episodeId,
     onEpisodeChange,
     episodes,
 }: AssetToolbarProps) {
-    const onRefresh = useRefreshProjectAssets(projectId)
     const t = useTranslations('assets')
     const { data: assets } = useProjectAssets(projectId)
     const { data: projectData } = useProjectData(projectId)
     const projectName = projectData?.name
     const [isDownloading, setIsDownloading] = useState(false)
-
-    const assetTaskRunningState = isBatchSubmitting
-        ? resolveTaskPresentationState({
-            phase: 'processing',
-            intent: 'generate',
-            resource: 'image',
-            hasOutput: true,
-        })
-        : null
 
     const handleDownloadAll = async () => {
         const characters = assets?.characters ?? []
@@ -297,39 +279,6 @@ export default function AssetToolbar({
                     )}
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={onGenerateAll}
-                        disabled={isBatchSubmitting || isAnalyzingAssets || isGlobalAnalyzing}
-                        className="glass-btn-base glass-btn-tone-success flex items-center gap-2 px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isBatchSubmitting ? (
-                            <>
-                                <TaskStatusInline state={assetTaskRunningState} className="text-white [&>span]:text-white [&_svg]:text-white" />
-                                <span className="text-xs text-white/90">({batchProgress.current}/{batchProgress.total})</span>
-                            </>
-                        ) : (
-                            <>
-                                <AppIcon name="image" className="w-4 h-4" />
-                                <span>{t("toolbar.generateAll")}</span>
-                            </>
-                        )}
-                    </button>
-                    <button
-                        onClick={onRegenerateAll}
-                        disabled={isBatchSubmitting || isAnalyzingAssets || isGlobalAnalyzing}
-                        className="glass-btn-base glass-btn-tone-warning flex items-center gap-2 px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={t("toolbar.regenerateAllHint")}
-                    >
-                        <AppIcon name="refresh" className="w-4 h-4" />
-                        <span>{t("toolbar.regenerateAll")}</span>
-                    </button>
-                    <button
-                        onClick={() => onRefresh()}
-                        className="glass-btn-base glass-btn-secondary flex items-center gap-2 px-4 py-2 text-sm font-medium border border-[var(--glass-stroke-base)]"
-                    >
-                        <AppIcon name="refresh" className="w-4 h-4" />
-                        <span>{t("common.refresh")}</span>
-                    </button>
                     {/* 打包下载按钮 */}
                     <button
                         onClick={handleDownloadAll}

@@ -10,6 +10,7 @@ import { createWorkerLLMStreamCallbacks, createWorkerLLMStreamContext } from './
 import type { TaskJobData } from '@/lib/task/types'
 import { buildPrompt, PROMPT_IDS } from '@/lib/prompt-i18n'
 import { resolveAnalysisModel } from './resolve-analysis-model'
+import { seedProjectLocationBackedImageSlots } from '@/lib/assets/services/location-backed-assets'
 
 function readAssetKind(value: Record<string, unknown>): string {
   return typeof value.assetKind === 'string' ? value.assetKind : 'location'
@@ -43,9 +44,6 @@ function parseJsonResponse(responseText: string): Record<string, unknown> {
 export async function handleAnalyzeNovelTask(job: Job<TaskJobData>) {
   const payload = (job.data.payload || {}) as Record<string, unknown>
   const projectId = job.data.projectId
-  const locationModel = prisma.novelPromotionLocation as unknown as {
-    create: (args: { data: Record<string, unknown>; select?: Record<string, boolean> }) => Promise<{ id: string }>
-  }
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -312,7 +310,7 @@ export async function handleAnalyzeNovelTask(job: Job<TaskJobData>) {
     )
     if (existsInLibrary) continue
 
-    const created = await locationModel.create({
+    const created = await prisma.novelPromotionLocation.create({
       data: {
         novelPromotionProjectId: novelData.id,
         name,
@@ -322,15 +320,11 @@ export async function handleAnalyzeNovelTask(job: Job<TaskJobData>) {
     })
 
     const cleanDescriptions = descriptions.map((value) => removeLocationPromptSuffix(value || ''))
-    for (let i = 0; i < cleanDescriptions.length; i += 1) {
-      await prisma.locationImage.create({
-        data: {
-          locationId: created.id,
-          imageIndex: i,
-          description: cleanDescriptions[i],
-        },
-      })
-    }
+    await seedProjectLocationBackedImageSlots({
+      locationId: created.id,
+      descriptions: cleanDescriptions,
+      fallbackDescription: readText(item.summary) || name,
+    })
 
     createdLocations.push(created)
   }
@@ -349,7 +343,7 @@ export async function handleAnalyzeNovelTask(job: Job<TaskJobData>) {
     const normalizedName = name.toLowerCase()
     if (existingPropNameSet.has(normalizedName)) continue
 
-    const created = await locationModel.create({
+    const created = await prisma.novelPromotionLocation.create({
       data: {
         novelPromotionProjectId: novelData.id,
         name,
@@ -357,6 +351,11 @@ export async function handleAnalyzeNovelTask(job: Job<TaskJobData>) {
         assetKind: 'prop',
       },
       select: { id: true },
+    })
+    await seedProjectLocationBackedImageSlots({
+      locationId: created.id,
+      descriptions: [summary],
+      fallbackDescription: summary,
     })
     existingPropNameSet.add(normalizedName)
     createdProps.push(created)

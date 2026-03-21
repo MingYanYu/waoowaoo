@@ -9,10 +9,14 @@ export interface SegmentedControlOption<T extends string = string> {
     label: ReactNode
 }
 
+type SegmentedControlLayout = 'fill' | 'compact'
+
 interface SegmentedControlProps<T extends string = string> {
     options: SegmentedControlOption<T>[]
     value: T
     onChange: (value: T) => void
+    /** Layout mode: stretch to container or keep a compact left-aligned width */
+    layout?: SegmentedControlLayout
     /** Extra className on the outer container */
     className?: string
 }
@@ -31,10 +35,12 @@ export function SegmentedControl<T extends string = string>({
     options,
     value,
     onChange,
+    layout = 'fill',
     className = '',
 }: SegmentedControlProps<T>) {
     const gridRef = useRef<HTMLDivElement>(null)
     const [indicator, setIndicator] = useState<{ left: number; width: number }>({ left: 0, width: 0 })
+    const isCompact = layout === 'compact'
 
     useEffect(() => {
         if (!gridRef.current) return
@@ -47,11 +53,13 @@ export function SegmentedControl<T extends string = string>({
     }, [value, options])
 
     return (
-        <div className={`rounded-xl p-[3px] bg-[#e8e8ed] dark:bg-[#1c1c1e] ${className}`}>
+        <div
+            className={`rounded-xl p-[3px] bg-[#e8e8ed] dark:bg-[#1c1c1e] ${isCompact ? 'inline-block max-w-full' : 'block w-full'} ${className}`}
+        >
             <div
                 ref={gridRef}
-                className="relative grid"
-                style={{ gridTemplateColumns: `repeat(${Math.max(1, options.length)}, minmax(0, 1fr))` }}
+                className={isCompact ? 'relative inline-grid grid-flow-col auto-cols-[minmax(96px,max-content)]' : 'relative grid'}
+                style={isCompact ? undefined : { gridTemplateColumns: `repeat(${Math.max(1, options.length)}, minmax(0, 1fr))` }}
             >
                 {/* Sliding pill indicator */}
                 <div

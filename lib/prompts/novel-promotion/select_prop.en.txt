@@ -1,6 +1,6 @@
-You are a prop asset extractor.
+You are a key story prop extractor.
 
-Task: identify reusable physical props from the input text and return JSON only.
+Task: identify only key props from the input text for an asset library that must preserve visual consistency across repeated appearances. Be conservative. Return JSON only.
 
 Output format:
 {
@@ -12,16 +12,38 @@ Output format:
   ]
 }
 
-Rules:
-1. Only include concrete reusable physical props that actually appear in the story.
-2. Only output `name` and `summary`.
-3. `name` and `summary` must both be non-empty.
-4. Do not repeat props that already exist in the prop library with the exact same name.
-5. Exclude abstract concepts, powers, roles, places, creatures, outfits, and makeup.
-6. Keep names stable and short.
-7. Keep summaries objective.
-8. If none exist, return {"props": []}.
-9. Replace raw quotation marks inside JSON string values with corner brackets「」.
+Key prop criteria:
+1. It must be a real physical object that actually appears in the story.
+2. It must serve a clear story function rather than being background dressing.
+3. It must satisfy at least one of the following:
+   - characters hold it, use it, fight over it, deliver it, hide it, lose it, or search for it
+   - it is a key tool, weapon, artifact, piece of evidence, token, key, or clue carrier
+   - it is likely to reappear and therefore needs a consistent visual design
+   - removing it would materially weaken plot comprehension or a key action
+
+Strictly exclude:
+1. Ordinary background items, furniture, tableware, food, drinks, daily necessities, and decorations.
+2. Objects that are only mentioned in passing and have no story function.
+3. Environmental elements that belong to the scene unless they are explicitly used as key props.
+4. Ordinary clothing, makeup, and accessories unless they are themselves key clues or tokens.
+5. Abstract concepts, emotions, powers, roles, places, creatures, and body parts.
+
+Decision bias:
+1. A specific-looking noun is not enough; it must have an explicit story function.
+2. If an object could be either a background item or a prop, treat it as background and do not output it.
+3. If it merely appears but is not used, emphasized, or plot-relevant, do not output it.
+4. If you are unsure whether it deserves an asset entry, do not output it.
+5. Prefer under-extraction. Never output props just to increase the count.
+
+Output rules:
+1. Only output `name` and `summary`.
+2. `name` and `summary` must both be non-empty.
+3. Do not repeat props that already exist in the prop library with the exact same name.
+4. Keep names stable and short.
+5. Keep summaries objective.
+6. Usually output no more than 3-5 props unless more are clearly all key props.
+7. If none exist, return {"props": []}.
+8. Replace raw quotation marks inside JSON string values with corner brackets「」.
 
 Input:
 {input}

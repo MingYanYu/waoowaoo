@@ -20,6 +20,7 @@ import { getImageGenerationCountOptions } from '@/lib/image-generation/count'
 import { useImageGenerationCount } from '@/lib/image-generation/use-image-generation-count'
 import { countGeneratedImageSlots, resolveDisplayImageSlots } from '@/lib/image-generation/slot-state'
 import { AppIcon } from '@/components/ui/icons'
+import { canGenerateLocationBackedAsset } from './location-backed-asset'
 
 interface LocationCardProps {
   location: Location
@@ -358,7 +359,7 @@ export default function LocationCard({
   )
 
   const firstImage = location.images?.[0]
-  const hasDescription = !!firstImage?.description
+  const canGenerate = canGenerateLocationBackedAsset(location)
 
   return (
     <div className="flex flex-col gap-2 glass-surface-elevated p-3">
@@ -395,7 +396,7 @@ export default function LocationCard({
         mode="compact"
         currentImageUrl={currentImageUrl}
         isTaskRunning={isTaskRunning}
-        hasDescription={hasDescription}
+        canGenerate={canGenerate}
         generationCount={generationCount}
         onGenerationCountChange={setGenerationCount}
         onGenerate={onGenerate}

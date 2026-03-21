@@ -74,6 +74,7 @@ export type CharacterAssetSummary = BaseAssetSummary & {
   family: 'visual'
   variants: AssetVariantSummary[]
   introduction: string | null
+  profileData: string | null
   profileConfirmed: boolean | null
   profileTaskRefs: AssetTaskRef[]
   profileTaskState: AssetTaskState

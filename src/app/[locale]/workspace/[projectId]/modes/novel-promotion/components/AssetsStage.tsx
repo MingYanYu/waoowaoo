@@ -49,7 +49,6 @@ import LocationSection from './assets/LocationSection'
 import AssetToolbar from './assets/AssetToolbar'
 import AssetFilterBar, { type AssetKindFilter } from './assets/AssetFilterBar'
 import AssetsStageStatusOverlays from './assets/AssetsStageStatusOverlays'
-import UnconfirmedProfilesSection from './assets/UnconfirmedProfilesSection'
 import AssetsStageModals from './assets/AssetsStageModals'
 
 interface AssetsStageProps {
@@ -207,12 +206,9 @@ export default function AssetsStage({
   // 批量生成
   const {
     isBatchSubmitting,
-    batchProgress,
     activeTaskKeys,
     registerTransientTaskKey,
     clearTransientTaskKey,
-    handleGenerateAllImages,
-    handleRegenerateAllImages
   } = useBatchGeneration({
     projectId,
     handleGenerateImage
@@ -391,9 +387,6 @@ export default function AssetsStage({
         isBatchSubmitting={isBatchSubmitting}
         isAnalyzingAssets={isAnalyzingAssets}
         isGlobalAnalyzing={isGlobalAnalyzing}
-        batchProgress={batchProgress}
-        onGenerateAll={handleGenerateAllImages}
-        onRegenerateAll={handleRegenerateAllImages}
         onGlobalAnalyze={handleGlobalAnalyze}
         episodeId={episodeFilter}
         onEpisodeChange={setEpisodeFilter}
@@ -410,22 +403,6 @@ export default function AssetsStage({
           location: filteredLocCount,
           prop: filteredPropCount,
         }}
-      />
-
-      <UnconfirmedProfilesSection
-        unconfirmedCharacters={unconfirmedCharacters}
-        confirmTitle={t('stage.confirmProfiles')}
-        confirmHint={t('stage.confirmHint')}
-        confirmAllLabel={t('stage.confirmAll', { count: unconfirmedCharacters.length })}
-        batchConfirming={batchConfirming}
-        batchConfirmingState={batchConfirmingState}
-        deletingCharacterId={deletingCharacterId}
-        isConfirmingCharacter={isConfirmingCharacter}
-        onBatchConfirm={handleBatchConfirm}
-        onEditProfile={handleEditProfile}
-        onConfirmProfile={handleConfirmProfile}
-        onUseExistingProfile={handleCopyFromGlobal}
-        onDeleteProfile={handleDeleteProfile}
       />
 
       {(kindFilter === 'all' || kindFilter === 'character') && (
@@ -456,6 +433,17 @@ export default function AssetsStage({
             onCopyFromGlobal={handleCopyFromGlobal}
             getAppearances={getAppearances}
             filterIds={episodeAssetIds?.charIds ?? null}
+            // 🔥 V7：待确认角色档案内嵌到 CharacterSection
+            unconfirmedCharacters={unconfirmedCharacters}
+            isConfirmingCharacter={isConfirmingCharacter}
+            deletingCharacterId={deletingCharacterId}
+            batchConfirming={batchConfirming}
+            batchConfirmingState={batchConfirmingState}
+            onBatchConfirm={handleBatchConfirm}
+            onEditProfile={handleEditProfile}
+            onConfirmProfile={handleConfirmProfile}
+            onUseExistingProfile={handleCopyFromGlobal}
+            onDeleteProfile={handleDeleteProfile}
           />
       )}
       {(kindFilter === 'all' || kindFilter === 'location') && (

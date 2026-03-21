@@ -4,6 +4,8 @@ const prismaMock = vi.hoisted(() => ({
   $queryRaw: vi.fn(),
   $executeRaw: vi.fn(),
   $transaction: vi.fn(),
+  locationImage: { createMany: vi.fn() },
+  globalLocationImage: { createMany: vi.fn() },
 }))
 
 vi.mock('@/lib/prisma', () => ({
@@ -43,5 +45,51 @@ describe('location-backed assets service', () => {
     expect(assetSql).not.toContain('projectId')
     expect(imageSql).toContain('FROM location_images')
     expect(imageSql).toContain('NULL AS previousImageMediaId')
+  })
+
+  it('seeds an initial project image slot when creating a prop asset', async () => {
+    const mod = await import('@/lib/assets/services/location-backed-assets')
+
+    const result = await mod.createProjectLocationBackedAsset({
+      novelPromotionProjectId: 'novel-project-1',
+      name: 'Bronze Dagger',
+      summary: 'Old bronze dagger',
+      kind: 'prop',
+    })
+
+    expect(prismaMock.locationImage.createMany).toHaveBeenCalledWith({
+      data: [
+        {
+          locationId: result.id,
+          imageIndex: 0,
+          description: 'Old bronze dagger',
+        },
+      ],
+    })
+  })
+
+  it('seeds multiple project image slots when explicit descriptions are provided', async () => {
+    const mod = await import('@/lib/assets/services/location-backed-assets')
+
+    await mod.seedProjectLocationBackedImageSlots({
+      locationId: 'location-1',
+      descriptions: ['Night street', 'Rainy alley'],
+      fallbackDescription: 'Night street',
+    })
+
+    expect(prismaMock.locationImage.createMany).toHaveBeenCalledWith({
+      data: [
+        {
+          locationId: 'location-1',
+          imageIndex: 0,
+          description: 'Night street',
+        },
+        {
+          locationId: 'location-1',
+          imageIndex: 1,
+          description: 'Rainy alley',
+        },
+      ],
+    })
   })
 })

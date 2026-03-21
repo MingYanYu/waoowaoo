@@ -9,6 +9,7 @@ import {
   type AnalyzeGlobalPropsData,
   type CharacterBrief,
 } from './analyze-global-parse'
+import { seedProjectLocationBackedImageSlots } from '@/lib/assets/services/location-backed-assets'
 
 export type AnalyzeGlobalStats = {
   totalChunks: number
@@ -48,10 +49,6 @@ export async function persistAnalyzeGlobalChunk(params: {
   existingPropNames: string[]
   stats: AnalyzeGlobalStats
 }) {
-  const locationModel = prisma.novelPromotionLocation as unknown as {
-    create: (args: { data: Record<string, unknown>; select?: Record<string, boolean> }) => Promise<{ id: string }>
-  }
-
   for (const char of params.charactersData.new_characters || []) {
     const name = readText(char.name).trim()
     const aliases = toStringArray(char.aliases)
@@ -181,15 +178,11 @@ export async function persistAnalyzeGlobalChunk(params: {
         },
       })
 
-      for (let j = 0; j < cleanDescriptions.length; j += 1) {
-        await prisma.locationImage.create({
-          data: {
-            locationId: created.id,
-            imageIndex: j,
-            description: cleanDescriptions[j],
-          },
-        })
-      }
+      await seedProjectLocationBackedImageSlots({
+        locationId: created.id,
+        descriptions: cleanDescriptions,
+        fallbackDescription: summary || name,
+      })
 
       params.existingLocationNames.push(name)
       params.existingLocationInfo.push(summary ? `${name}(${summary})` : name)
@@ -214,13 +207,18 @@ export async function persistAnalyzeGlobalChunk(params: {
     }
 
     try {
-      await locationModel.create({
+      const created = await prisma.novelPromotionLocation.create({
         data: {
           novelPromotionProjectId: params.projectInternalId,
           name,
           summary,
           assetKind: 'prop',
         },
+      })
+      await seedProjectLocationBackedImageSlots({
+        locationId: created.id,
+        descriptions: [summary],
+        fallbackDescription: summary,
       })
       params.existingPropNames.push(name)
       params.stats.newProps += 1

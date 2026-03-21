@@ -13,6 +13,7 @@ import { Location, Prop } from '@/types/project'
 import { useProjectAssets } from '@/lib/query/hooks/useProjectAssets'
 import LocationCard from './LocationCard'
 import { AppIcon } from '@/components/ui/icons'
+import { resolveLocationBackedGenerateType } from './location-backed-asset'
 
 interface LocationSectionProps {
     // 🔥 V6.5 删除：locations prop - 现在内部直接订阅
@@ -26,7 +27,7 @@ interface LocationSectionProps {
     onDeleteLocation: (locationId: string) => void
     onEditLocation: (location: Location | Prop) => void
     // 🔥 V6.6 重构：重命名为 handleGenerateImage
-    handleGenerateImage: (type: 'character' | 'location', id: string, appearanceId?: string, count?: number) => Promise<void>
+    handleGenerateImage: (type: 'character' | 'location' | 'prop', id: string, appearanceId?: string, count?: number) => Promise<void>
     onSelectImage: (locationId: string, imageIndex: number | null) => void
     onConfirmSelection: (locationId: string) => void
     onRegenerateSingle: (locationId: string, imageIndex: number) => Promise<void>
@@ -68,6 +69,7 @@ export default function LocationSection({
         : assets?.locations ?? []
     const locations = filterIds ? allLocations.filter((l) => filterIds.has(l.id)) : allLocations
     const assetKey = assetType === 'prop' ? 'prop' : 'location'
+    const generateType = resolveLocationBackedGenerateType(assetType)
 
     return (
         <div className="glass-surface p-6">
@@ -135,7 +137,7 @@ export default function LocationSection({
                         onGenerate={(count) => {
                             const taskKey = `location-${location.id}-group`
                             onRegisterTransientTaskKey(taskKey)
-                            void handleGenerateImage('location', location.id, undefined, count).catch(() => {
+                            void handleGenerateImage(generateType, location.id, undefined, count).catch(() => {
                                 onClearTaskKey(taskKey)
                             })
                         }}

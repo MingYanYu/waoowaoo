@@ -12,6 +12,8 @@
         "confirmProfiles": "Character Profiles to Confirm",
         "confirmHint": "Please confirm these profiles before generating descriptions",
         "confirmAll": "Confirm All ({count})",
+        "pendingProfilesBanner": "AI Casting Complete",
+        "pendingProfilesHint": "Confirm profiles to auto-generate character visuals",
         "assetsTitle": "Asset Analysis",
         "characterAssets": "Character Assets",
         "locationAssets": "Location Assets",

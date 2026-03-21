@@ -321,6 +321,7 @@ export default function ScriptViewAssetsPanel({
   const hasCharacterSelectionChanges = !setsEqual(initialAppearanceKeys, pendingAppearanceKeys) || hasCharacterLabelChanges
   const hasLocationSelectionChanges = !setsEqual(new Set(activeLocationIds), pendingLocationIds) || hasLocationLabelChanges
   const hasPropSelectionChanges = !setsEqual(new Set(activePropIds), pendingPropIds)
+  const hasProjectProps = props.length > 0
 
   const handleConfirmCharacterSelection = async () => {
     if (isSavingCharacterSelection) return
@@ -754,6 +755,7 @@ export default function ScriptViewAssetsPanel({
             )}
           </div>
 
+          {hasProjectProps ? (
           <div className="relative">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-sm font-bold text-[var(--glass-text-secondary)]">道具 ({activePropIds.length})</h3>
@@ -855,6 +857,7 @@ export default function ScriptViewAssetsPanel({
               </div>
             )}
           </div>
+          ) : null}
         </div>
       </div>
 
@@ -874,7 +877,7 @@ export default function ScriptViewAssetsPanel({
         <button
           onClick={onGenerateStoryboard}
           disabled={isSubmittingStoryboardBuild || clips.length === 0 || !allAssetsHaveImages}
-          className="w-full py-4 text-lg font-bold bg-[var(--glass-accent-from)] text-white rounded-2xl"
+          className="glass-btn-base glass-btn-primary w-full py-4 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {isSubmittingStoryboardBuild ? tScript('generate.generating') : tScript('generate.startGenerate')}
         </button>

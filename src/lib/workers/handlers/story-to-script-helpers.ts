@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { removeLocationPromptSuffix } from '@/lib/constants'
 import type { StoryToScriptClipCandidate } from '@/lib/novel-promotion/story-to-script/orchestrator'
+import { seedProjectLocationBackedImageSlots } from '@/lib/assets/services/location-backed-assets'
 
 export type AnyObj = Record<string, unknown>
 
@@ -118,15 +119,11 @@ export async function persistAnalyzedLocations(params: {
     })
 
     const cleanDescriptions = mergedDescriptions.map((desc) => removeLocationPromptSuffix(desc || ''))
-    for (let i = 0; i < cleanDescriptions.length; i += 1) {
-      await prisma.locationImage.create({
-        data: {
-          locationId: location.id,
-          imageIndex: i,
-          description: cleanDescriptions[i],
-        },
-      })
-    }
+    await seedProjectLocationBackedImageSlots({
+      locationId: location.id,
+      descriptions: cleanDescriptions,
+      fallbackDescription: asString(item.summary) || name,
+    })
 
     params.existingNames.add(key)
     created.push(location)
@@ -141,9 +138,6 @@ export async function persistAnalyzedProps(params: {
   analyzedProps: Record<string, unknown>[]
 }) {
   const created: Array<{ id: string; name: string }> = []
-  const locationModel = prisma.novelPromotionLocation as unknown as {
-    create: (args: { data: Record<string, unknown>; select: { id: true; name: true } }) => Promise<{ id: string; name: string }>
-  }
 
   for (const item of params.analyzedProps) {
     const name = asString(item.name).trim()
@@ -153,7 +147,7 @@ export async function persistAnalyzedProps(params: {
     const key = name.toLowerCase()
     if (params.existingNames.has(key)) continue
 
-    const prop = await locationModel.create({
+    const prop = await prisma.novelPromotionLocation.create({
       data: {
         novelPromotionProjectId: params.projectInternalId,
         name,
@@ -164,6 +158,11 @@ export async function persistAnalyzedProps(params: {
         id: true,
         name: true,
       },
+    })
+    await seedProjectLocationBackedImageSlots({
+      locationId: prop.id,
+      descriptions: [summary],
+      fallbackDescription: summary,
     })
 
     params.existingNames.add(key)
